@@ -7,433 +7,1052 @@
 [![Deployed on EdgeOne](https://img.shields.io/badge/Deployed%20on-EdgeOne%20Pages-orange)](https://edgeone.ai)
 [![Next.js 14](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue)](https://typescriptlang.org)
-[![Security: 5-Layer](https://img.shields.io/badge/Security-5%20Layer-red)](https://github.com/bcefghj/enterprise-ai-saas-skill)
-
-## 一句话总结
-
-> **对 WorkBuddy 说一句话，30 分钟内拥有一个完整的企业级 AI SaaS 网站。**
-
-不需要会 React，不需要懂数据库，不需要配置过 Stripe。你只需要说出你的想法，这个 Skill 会自动完成其余一切。
-
----
-
-## 📺 效果展示
-
-| 页面 | 功能 | 效果 |
-|------|------|------|
-| 🏠 首页 | 营销落地页 | 渐变 Hero + 功能卡片 + 用户评价 + CTA |
-| 💬 AI 对话 | 实时流式对话 | 打字机效果，支持 Markdown、代码高亮 |
-| 💳 定价页 | 订阅套餐 | 三档价格卡片，一键跳转 Stripe 结账 |
-| 📊 用户仪表盘 | 个人中心 | 使用统计图表 + 历史对话列表 |
-| 🔐 管理后台 | 后台管理 | 用户管理 + 数据分析 + 系统配置（仅管理员） |
+[![Security: 5-Layer](https://img.shields.io/badge/Security-5%20Layer%20Defense-red)](#-安全架构5层纵深防御)
 
 **🌐 在线演示：[enterprise-ai-saas-3wsjjdqb.edgeone.cool](https://enterprise-ai-saas-3wsjjdqb.edgeone.cool)**
 
 ---
 
-## ✨ 这个 Skill 能生成什么？
+## 目录
 
-### 一个真实的对话例子
-
-假设你对 WorkBuddy 说：
-
-```
-帮我做一个 AI 简历优化平台，用户可以上传简历让 AI 帮忙改进，
-按月订阅，$9.9 Pro / $29.9 Enterprise，需要用户登录，
-我要能在后台看到用户数量和使用量
-```
-
-这个 Skill 会在 30 分钟内生成以下所有内容：
-
-#### 📁 生成的文件树（约 35 个文件）
-
-```
-resume-optimizer/
-│
-├── 🌐 前端页面 (Next.js 14)
-│   ├── src/app/page.tsx                    ← 首页：Hero + 功能介绍 + 定价
-│   ├── src/app/pricing/page.tsx            ← 定价页：$9.9 Pro / $29.9 Enterprise
-│   ├── src/app/(auth)/login/page.tsx       ← 登录页：邮箱密码 + Google OAuth
-│   ├── src/app/(auth)/register/page.tsx    ← 注册页：邮件确认
-│   ├── src/app/dashboard/page.tsx          ← 用户仪表盘：统计卡片 + 近期记录
-│   ├── src/app/dashboard/chat/page.tsx     ← AI 简历优化界面：上传 + 流式输出
-│   ├── src/app/dashboard/settings/page.tsx ← 设置：个人信息 + 订阅管理
-│   ├── src/app/admin/page.tsx              ← 管理后台：KPI 仪表盘（仅管理员）
-│   ├── src/app/admin/users/page.tsx        ← 用户列表：搜索/封禁/改权限
-│   └── src/app/admin/analytics/page.tsx   ← 数据图表：折线图 + 柱状图
-│
-├── ☁️ 云函数 (Node.js Cloud Functions)
-│   ├── cloud-functions/api/ai/chat.ts      ← AI 接口：MiniMax M2.7 流式
-│   ├── cloud-functions/api/stripe/
-│   │   ├── create-checkout.ts              ← 创建 Stripe 结账会话
-│   │   └── webhook.ts                      ← 接收付款成功事件（签名验证）
-│   └── cloud-functions/api/admin/stats.ts ← 管理员统计 API
-│
-├── ⚡ Edge Functions (V8 引擎)
-│   └── edge-functions/api/health.ts        ← 健康检查 + 安全头注入
-│
-└── 🗃️ 数据库
-    └── database/init.sql                   ← 一键初始化 6 张表 + 策略
-```
+- [这是什么？](#-这是什么)
+- [30秒快速体验](#-30秒快速体验)
+- [生成效果详览](#-生成效果详览)
+- [安全架构：5层纵深防御](#-安全架构5层纵深防御)
+- [EdgeOne 全栈能力使用详解](#-edgeone-全栈能力使用详解)
+- [AI 对话功能（MiniMax M2.7）](#-ai-对话功能minimax-m27)
+- [Stripe 支付集成](#-stripe-支付集成)
+- [管理后台详解](#-管理后台详解)
+- [技术栈与选型理由](#-技术栈与选型理由)
+- [Skill 内部结构](#-skill-内部结构12-份参考文档)
+- [快速开始：在 WorkBuddy 中使用](#-快速开始在-workbuddy-中使用)
+- [直接运行示例项目](#-直接运行示例项目)
+- [环境变量获取指南（新手友好）](#-环境变量获取指南新手友好)
+- [数据库结构详解](#-数据库结构详解)
+- [设计系统](#-设计系统)
+- [响应式设计](#-响应式设计)
+- [与官方示例的差异](#-与官方示例的差异)
+- [常见问题 FAQ](#-常见问题-faq)
+- [贡献指南](#-贡献指南)
 
 ---
 
-#### 🔒 自动实现的安全功能
+## 🎯 这是什么？
 
-你完全不需要手动写安全代码，Skill 会自动生成以下全部：
+这是一个 **WorkBuddy Skill**（AI 技能包），它的作用是：
 
-**Layer 1 — 速率限制（你的接口不会被恶意刷爆）**
+> **你对 AI 说一句话，它帮你从零生成一个完整的企业级 AI SaaS 网站。**
 
-```typescript
-// 自动生成的 Edge Function 速率限制（滑动窗口算法）
-// 同一 IP 每分钟最多 60 次请求，超出直接返回 429
-const key = `rate_limit:${clientIP}:${Math.floor(Date.now() / 60000)}`;
-const count = await kv.incr(key);
-await kv.expire(key, 120);
+### 对比：普通方式 vs 使用这个 Skill
 
-if (count > 60) {
-  return new Response(JSON.stringify({
-    error: "Too many requests",
-    retryAfter: 60,
-  }), {
-    status: 429,
-    headers: { "Retry-After": "60" }
-  });
-}
-```
+| | 普通方式（自己开发） | 使用这个 Skill |
+|---|---|---|
+| 认证系统（登录/注册/OAuth）| 2-3天 | 自动生成 |
+| 支付集成（Stripe 订阅）| 1-2天 | 自动生成 |
+| AI 对话（流式输出）| 1天 | 自动生成 |
+| 管理后台 | 3-5天 | 自动生成 |
+| 安全防护（限流/JWT/XSS防护）| 持续迭代 | 自动生成 |
+| 数据库设计 + SQL | 半天 | 自动生成 |
+| **总计** | **约 2 周** | **约 30 分钟** |
 
-**Layer 2 — JWT 验证（保证只有登录用户才能用 AI）**
-
-```typescript
-// 自动生成：每个需要登录的 API 都有这段验证
-const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-const payload = await verifyJWT(token, process.env.SUPABASE_JWT_SECRET);
-
-if (!payload || payload.exp < Date.now() / 1000) {
-  return new Response("Unauthorized", { status: 401 });
-}
-```
-
-**Layer 3 — 输入校验（防 XSS、防注入）**
-
-```typescript
-// 自动生成的 Zod 校验，保证用户输入是合法的
-const schema = z.object({
-  message: z.string().min(1).max(4000).transform(sanitizeHtml),
-  conversationId: z.string().uuid().optional(),
-});
-
-const result = schema.safeParse(req.body);
-if (!result.success) {
-  return Response.json({ error: "Invalid input" }, { status: 400 });
-}
-```
-
-**Layer 4 — Stripe Webhook 验证（付款事件 100% 真实）**
-
-```typescript
-// 自动生成：Stripe 会在每次付款时发送通知，这里验证通知是真的
-const sig = request.headers.get("stripe-signature");
-let event: Stripe.Event;
-
-try {
-  event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
-} catch (err) {
-  // 签名不对就拒绝，防止伪造付款成功事件
-  return new Response("Webhook signature verification failed", { status: 400 });
-}
-```
-
-**Layer 5 — 数据库行级安全（用户只能看自己的数据）**
-
-```sql
--- 自动生成：数据库层面强制隔离
--- 即使 API 有 bug，用户 A 也永远拿不到用户 B 的数据
-ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can only see own conversations"
-  ON conversations FOR ALL
-  USING (auth.uid() = user_id);
-```
-
----
-
-#### 🤖 AI 对话功能（流式输出效果）
-
-你问 AI，AI 的回复是**逐字流出**的，不是等全部生成完再显示，体验和 ChatGPT 一样：
-
-```
-你: 帮我优化这段自我介绍："本人大四在读，有一定编程经验"
-
-AI: 我来帮你优化这段自我介绍。▌
-
-    原句存在以下问题：
-    1. "一定编程经验"太模糊，缺乏具体性
-    2. "大四在读"是状态描述，不是亮点
-    3. 缺少量化数据和具体成就
-    
-    优化建议：
-    
-    **版本一（技术岗位）：**
-    "计算机科学大四在读，主导过 3 个全栈项目，
-    熟练使用 React/Node.js/PostgreSQL，
-    GitHub 代码量 10,000+ 行，有互联网公司实习经历。"
-    
-    **版本二（产品/运营岗位）：**
-    ...（AI 继续打字输出）
-```
-
-实现这个效果的代码（自动生成）：
-
-```typescript
-// cloud-functions/api/ai/chat.ts（自动生成）
-const response = await fetch("https://api.minimax.chat/v1/text/chatcompletion_v2", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${process.env.MINIMAX_API_KEY}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    model: "MiniMax-M2.7",
-    stream: true,  // 开启流式输出
-    messages: [{ role: "user", content: userMessage }],
-  }),
-});
-
-// 把 AI 的输出实时转发给前端
-return new Response(response.body, {
-  headers: {
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
-  },
-});
-```
-
----
-
-#### 💳 Stripe 支付集成（用户一键付款升级）
-
-用户在定价页点击"升级 Pro"后，流程完全自动：
-
-```
-用户点击"升级到 Pro $9.9/月"
-  ↓
-调用 Cloud Function: POST /api/stripe/create-checkout
-  ↓
-后端创建 Stripe Checkout Session（含用户 ID、价格 ID）
-  ↓
-跳转到 Stripe 官方支付页（用户在这里输入信用卡）
-  ↓
-支付成功 → Stripe 发送 Webhook 通知 → 后端验证签名
-  ↓
-数据库更新：用户角色从 free_user → pro_user
-  ↓
-用户自动解锁 Pro 功能（每天 500 次对话 vs 免费版 10 次）
-```
-
----
-
-### 另一个例子：客服机器人平台
+### 一个真实对话
 
 你对 WorkBuddy 说：
 
 ```
-我想做一个企业客服机器人平台，让企业买账号，
-给他们的网站接入 AI 客服，按坐席收费，
-要有接入代码（JS 嵌入脚本），要有后台查看对话记录
+帮我做一个 AI 写作助手平台，用户注册后可以用 AI 帮他们写文章，
+按月订阅 $12/月，需要管理后台，要能看到用户数量和使用量
 ```
 
-Skill 同样能生成，区别只在品牌名称、功能描述文案、定价文案不同，安全架构、数据库、支付流程完全一致。
+Skill 会展示给你一个 Spec 确认单：
+
+```json
+{
+  "productName": "WriteAI",
+  "tagline": "用 AI 解锁你的写作潜力",
+  "theme": "dark",
+  "primaryColor": "#3b82f6",
+  "language": ["zh-CN", "en"],
+  "features": {
+    "auth": true,
+    "payment": true,
+    "aiChat": true,
+    "adminDashboard": true
+  },
+  "pricing": {
+    "free": { "price": 0, "aiCallsPerDay": 10 },
+    "pro": { "price": 12, "aiCallsPerDay": 500 },
+    "enterprise": { "price": 49, "aiCallsPerDay": -1 }
+  },
+  "security": {
+    "level": "enterprise",
+    "rateLimitRPM": 60,
+    "csrfProtection": true,
+    "auditLog": true
+  }
+}
+```
+
+你确认后，30分钟内生成 **35个文件，4,868行代码**，全部通过 TypeScript 编译。
 
 ---
 
-## 🧩 Skill 内部有什么？
+## ⚡ 30秒快速体验
 
-这个 Skill 不是一个简单的 prompt，它是一套**12 份精密参考文档**，总计 **5,868 行**的工程知识：
+```bash
+# 1. 安装 Skills 包（一次性）
+npx skills add TencentEdgeOne/edgeone-pages-skills
+
+# 2. 打开 WorkBuddy，说任何一句：
+"帮我做一个 AI SaaS 平台"
+"build an enterprise AI assistant on EdgeOne"
+"创建带订阅支付的 AI 工具网站"
+"做一个 AI 客服平台，月付 $29"
+
+# 3. 生成完毕后说：
+"部署到 EdgeOne Pages"
+
+# 完成。你现在有了一个在线运行的企业级 AI SaaS 网站。
+```
+
+---
+
+## 🖼️ 生成效果详览
+
+### 首页（营销落地页）
 
 ```
-enterprise-ai-saas-skill/
-├── SKILL.md                             ← AI 阅读的主控文件（279行）
-│                                          描述：8步流程 + 触发词 + 路由
-│
-└── references/（AI 按需加载，不一次全读）
-    ├── user-prompt-intake.md   (353行) ← 理解你的需求，提炼成 Spec 对象
-    │   示例输出：
-    │   {
-    │     "productName": "ResumeAI",
-    │     "features": {
-    │       "auth": true,
-    │       "payment": true,
-    │       "aiChat": true,
-    │       "adminDashboard": true
-    │     },
-    │     "pricing": { "pro": 9.9, "enterprise": 29.9 },
-    │     "security": { "level": "enterprise" }
-    │   }
+┌──────────────────────────────────────────────────────────┐
+│  [Navbar]  AiFlow    首页  定价        [登录] [免费开始]   │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  [渐变背景，有微弱的网格线纹理]                             │
+│                                                          │
+│         面向企业的下一代 AI 平台                           │
+│                                                          │
+│    企业级 AI 助手平台                                      │
+│    释放团队全部潜力                     ← 逐字打出动效      │
+│                                                          │
+│  [AI 对话预览卡片，展示实时流式对话效果]                    │
+│                                                          │
+│  [免费开始使用]  [观看演示]                                │
+│                                                          │
+├──────────────────────────────────────────────────────────┤
+│                  核心能力（6宫格卡片）                      │
+│                                                          │
+│  [智能AI对话] [企业级安全] [极速部署]                       │
+│  [团队协作]   [数据分析]   [全球化架构]                     │
+│                                                          │
+│  每个卡片都是半透明毛玻璃，悬停时微微上浮                    │
+├──────────────────────────────────────────────────────────┤
+│                 三步开启 AI 之旅                           │
+│  01创建账户 → 02配置AI助手 → 03规模化使用                  │
+├──────────────────────────────────────────────────────────┤
+│         10,000+活跃用户 · 99.9%可用性 · 4.9/5评分          │
+└──────────────────────────────────────────────────────────┘
+```
+
+### AI 对话界面（`/dashboard/chat`）
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  [Sidebar]           AI 助手对话界面                       │
+│  ├ 仪表盘            ┌─────────────────────────────────┐  │
+│  ├ AI 对话  ←当前    │  系统提示词: 你是专业的写作助手...  │  │
+│  └ 设置              └─────────────────────────────────┘  │
+│                                                          │
+│  [对话历史区域]                                           │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │  👤 用户: 帮我写一个关于人工智能未来的开场白          │ │
+│  │                                                     │ │
+│  │  🤖 AI: 人工智能正在以前所未有的速度改变▌            │ │
+│  │         ← 这里是流式打字效果，逐字出现               │ │
+│  └─────────────────────────────────────────────────────┘ │
+│                                                          │
+│  [消息输入框]                    [今日剩余: 487次] [发送]  │
+└──────────────────────────────────────────────────────────┘
+```
+
+### 管理后台（`/admin`，仅管理员可见）
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  管理后台              [bcefghj@163.com] [退出]           │
+│  ┌─────────┐                                             │
+│  │总览      │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────┐  │
+│  │用户管理  │  │总用户数 │ │今日活跃 │ │本月收入 │ │调用│  │
+│  │数据分析  │  │ 1,234  │ │  89    │ │$3,456  │ │45K │  │
+│  │系统设置  │  │↑12%   │ │↑5%    │ │↑23%   │ │↑67%│  │
+│  └─────────┘  └────────┘ └────────┘ └────────┘ └────┘  │
+│               ┌────────────────────┐ ┌──────────────┐   │
+│               │  用户增长曲线(30天)  │ │ 最近注册用户  │   │
+│               │    ╭──────╮        │ │  张三 - Pro  │   │
+│               │ ╭──╯      ╰───╮   │ │  李四 - Free │   │
+│               │ ╯             ╰   │ │  王五 - Admin│   │
+│               └────────────────────┘ └──────────────┘   │
+└──────────────────────────────────────────────────────────┘
+```
+
+### 定价页（`/pricing`）
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                     选择您的方案                           │
+│                                                          │
+│  ┌────────────┐  ┌──────────────────┐  ┌────────────┐   │
+│  │   Free     │  │   ★ Pro 推荐      │  │ Enterprise │   │
+│  │   $0/月    │  │   $19/月          │  │ $49/月     │   │
+│  │            │  │ [背景高亮+边框]    │  │            │   │
+│  │ ✓ 10次/天  │  │ ✓ 500次/天       │  │ ✓ 无限制   │   │
+│  │ ✓ 基础功能 │  │ ✓ 优先响应        │  │ ✓ 专属支持 │   │
+│  │ ✗ 管理后台 │  │ ✓ 数据导出        │  │ ✓ SLA保障  │   │
+│  │            │  │ ✗ 管理后台        │  │ ✓ 管理后台 │   │
+│  │[免费注册]  │  │  [立即升级]        │  │[联系销售]  │   │
+│  └────────────┘  └──────────────────┘  └────────────┘   │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🔒 安全架构：5层纵深防御
+
+本 Skill 的安全设计借鉴了 **Claude Code** 的分层权限思想和 **Hermes Agent** 的信任边界模型。所有安全代码均自动生成，无需手动实现。
+
+### 架构总览
+
+```
+互联网请求
     │
-    ├── architecture-overview.md (293行) ← 三层架构图解 + 目录结构 + 请求流
-    ├── project-scaffold.md      (454行) ← 完整脚手架命令序列
-    ├── auth-system.md           (671行) ← Supabase Auth + JWT + RBAC 完整实现
-    ├── payment-stripe.md        (485行) ← Stripe 订阅 + Webhook + 幂等
-    ├── ai-integration.md        (401行) ← MiniMax M2.7 + 流式 + 配额管理
-    ├── security-hardening.md    (808行) ← 5层安全，最重要的文档
-    ├── edge-kv-patterns.md      (439行) ← EdgeOne Edge Functions + KV 最佳实践
-    ├── admin-dashboard.md       (640行) ← 完整管理后台实现
-    ├── ui-design-system.md      (647行) ← 设计系统 + 动效 + 响应式
-    ├── database-schema.md       (406行) ← 6张表的 SQL + RLS + 触发器
-    └── deployment-handoff.md    (271行) ← 环境变量获取 + 本地验证清单
-```
-
----
-
-## 🛠️ 技术栈
-
-| 层级 | 技术 | 为什么选这个 |
-|------|------|------------|
-| **前端框架** | Next.js 14 (App Router) | SSR 加持，首屏快；SEO 友好；边缘渲染 |
-| **开发语言** | TypeScript 5.5 strict | 全局强类型，防运行时崩溃 |
-| **样式** | Tailwind CSS v4 + shadcn/ui | 开发速度快 3 倍；组件直接用，不造轮子 |
-| **动效** | Motion (Framer Motion) | 声明式动画，60fps，减少 jank |
-| **数据库** | Supabase PostgreSQL | 开源 Firebase 替代；行级安全内置；免费额度慷慨 |
-| **认证** | Supabase Auth + JWT | 开箱即用 OAuth；SSR 兼容；JWT 可在 Edge 层验证 |
-| **支付** | Stripe Subscriptions | 合规度最高；Webhook 有内建重试；支持 150+ 货币 |
-| **AI 模型** | MiniMax M2.7 | 国内访问稳定；支持流式 SSE；中文能力强 |
-| **AI 网关** | EdgeOne AI Gateway | 统一管理 API Key；自动限流；请求日志 |
-| **部署** | EdgeOne Pages | 全球 3200+ 节点；Edge Functions + KV 一体化；免费额度 |
-| **数据可视化** | Recharts | React 生态最成熟的图表库；支持响应式 |
-
----
-
-## 🗺️ 生成的网站页面地图
-
-```
-/                          ← 首页（SEO 落地页）
-│
-├── /pricing               ← 订阅定价页
-├── /login                 ← 登录（邮箱 + Google/GitHub OAuth）
-├── /register              ← 注册（邮件确认激活）
-│
-├── /dashboard             ← 用户工作台（需登录）
-│   ├── /dashboard/chat    ← AI 对话界面（核心功能）
-│   └── /dashboard/settings← 个人设置 + 订阅管理
-│
-└── /admin                 ← 管理后台（仅 admin 角色可访问）
-    ├── /admin/users       ← 用户列表 + 封禁 + 修改权限
-    ├── /admin/analytics   ← 使用量图表 + 收入趋势
-    └── /admin/settings    ← AI 参数 + 限流阈值配置
-```
-
-每条路由都有 **权限守卫**，非法访问会被自动重定向：
-- 未登录用户访问 `/dashboard` → 跳转到 `/login`
-- 普通用户访问 `/admin` → 跳转到 `/dashboard`（403 不暴露路由存在性）
-
----
-
-## 🔐 安全架构详解
-
-本 Skill 的安全设计借鉴了 **Claude Code** 的分层权限思想和 **Hermes Agent** 的信任边界模型。
-
-### 请求完整流程
-
-```
-浏览器请求
-  │
-  ▼
-[EdgeOne CDN] ← 静态资源缓存，DDoS 自动清洗
-  │
-  ▼
-[Edge Function: 安全中间件]
-  ├─ 检查 IP 速率限制（KV 滑动窗口，60次/分钟）
-  ├─ 验证 CORS Origin（只允许白名单域名）
-  ├─ 注入安全响应头（X-Frame-Options, CSP, HSTS）
-  └─ 大包检查（>1MB 直接拒绝，防止上传攻击）
-  │
-  ▼（通过则继续）
-[Edge Function: JWT 验证]
-  ├─ 解码 Authorization Header 中的 JWT
-  ├─ 用 SUPABASE_JWT_SECRET 验证签名（防伪造）
-  ├─ 检查 Token 过期时间
-  └─ 提取 user_id 和 role（注入请求上下文）
-  │
-  ▼
-[Cloud Function: 业务逻辑]
-  ├─ Zod Schema 校验所有输入字段
-  ├─ 消毒用户输入（防 XSS）
-  ├─ 检查用户配额（pro: 500次/天，free: 10次/天）
-  └─ 调用 MiniMax AI / Stripe API
-  │
-  ▼
-[Supabase PostgreSQL]
-  ├─ Row Level Security：user_id = auth.uid()
-  ├─ 写操作同时写入 audit_log 表
-  └─ 加密静态数据（AES-256，Supabase 内置）
+    ▼
+┌──────────────────────────────────────────────────────────┐
+│  Layer 0: EdgeOne CDN（DDoS 自动清洗，无需配置）           │
+│  • 全球 3200+ 节点，流量清洗中心在攻击前拦截               │
+│  • 自动吸收 SYN Flood、UDP Flood、HTTP Flood              │
+└────────────────────────┬─────────────────────────────────┘
+                         │ 合法流量通过
+┌────────────────────────▼─────────────────────────────────┐
+│  Layer 1: Edge Entry 防护（EdgeOne Edge Function）         │
+│                                                          │
+│  执行位置：全球边缘节点（冷启动 < 5ms）                     │
+│                                                          │
+│  ┌── IP 速率限制（滑动窗口算法）───────────────────┐       │
+│  │  const key = `rate:${ip}:${minute}`;           │       │
+│  │  const count = await kv.incr(key);             │       │
+│  │  if (count > 60) return 429;  // 超出直接拦截   │       │
+│  └────────────────────────────────────────────────┘       │
+│                                                          │
+│  ┌── CORS 白名单 ──────────────────────────────────┐       │
+│  │  只允许你的域名，防止其他网站盗用你的 API          │       │
+│  └────────────────────────────────────────────────┘       │
+│                                                          │
+│  ┌── 安全响应头 ───────────────────────────────────┐       │
+│  │  X-Frame-Options: DENY        ← 防止点击劫持     │       │
+│  │  X-Content-Type-Options: nosniff ← 防 MIME 嗅探  │       │
+│  │  Strict-Transport-Security    ← 强制 HTTPS       │       │
+│  │  Content-Security-Policy      ← 限制资源加载来源  │       │
+│  └────────────────────────────────────────────────┘       │
+│                                                          │
+│  ┌── 请求大小限制 ─────────────────────────────────┐       │
+│  │  if (contentLength > 1_000_000) return 413;    │       │
+│  │  // 超过 1MB 直接拒绝，防上传攻击                │       │
+│  └────────────────────────────────────────────────┘       │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+┌────────────────────────▼─────────────────────────────────┐
+│  Layer 2: 认证与授权（Edge Function JWT 验证）              │
+│                                                          │
+│  所有需要登录的路由（/dashboard, /admin, /api）都经过这层    │
+│                                                          │
+│  const token = req.headers.get("Authorization")         │
+│                              ?.replace("Bearer ", "");  │
+│                                                          │
+│  // 用 Supabase JWT Secret 验证签名，防止伪造 Token       │
+│  const payload = await verifyJWT(token, JWT_SECRET);    │
+│                                                          │
+│  if (!payload) return 401;     // Token 无效             │
+│  if (payload.exp < now) return 401; // Token 过期        │
+│                                                          │
+│  // 路由级别的角色检查                                     │
+│  if (path.startsWith("/admin") && role !== "admin") {   │
+│    return redirect("/dashboard"); // 非管理员踢走         │
+│  }                                                       │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+┌────────────────────────▼─────────────────────────────────┐
+│  Layer 3: 输入验证（Cloud Functions，Zod Schema）           │
+│                                                          │
+│  // 每个 API 端点都有严格的 Zod 校验                        │
+│  const chatSchema = z.object({                           │
+│    message: z.string()                                   │
+│      .min(1, "消息不能为空")                               │
+│      .max(4000, "消息过长")                               │
+│      .transform(sanitizeHtml),  // 清除 <script> 等标签  │
+│    conversationId: z.string().uuid().optional(),         │
+│  });                                                     │
+│                                                          │
+│  const result = chatSchema.safeParse(body);              │
+│  if (!result.success) {                                  │
+│    // 返回验证错误，不暴露内部细节                           │
+│    return 400 with { error: "Invalid input" };          │
+│  }                                                       │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+┌────────────────────────▼─────────────────────────────────┐
+│  Layer 4: 业务安全（Cloud Functions）                      │
+│                                                          │
+│  ┌── Stripe Webhook 验证 ─────────────────────────┐       │
+│  │  // 验证事件真的来自 Stripe，防伪造付款成功通知   │       │
+│  │  stripe.webhooks.constructEvent(body, sig, secret) │    │
+│  └────────────────────────────────────────────────┘       │
+│                                                          │
+│  ┌── 幂等性保护（KV 去重）────────────────────────┐        │
+│  │  const idempotentKey = `stripe:${event.id}`;  │        │
+│  │  const processed = await kv.get(idempotentKey);│        │
+│  │  if (processed) return 200; // 已处理，静默忽略  │        │
+│  │  await kv.set(idempotentKey, "1", { ex: 86400 });│      │
+│  └────────────────────────────────────────────────┘       │
+│                                                          │
+│  ┌── AI 配额强制执行 ──────────────────────────────┐       │
+│  │  const limits = { free: 10, pro: 500 };        │       │
+│  │  const todayUsage = await getTodayUsage(userId);│       │
+│  │  if (todayUsage >= limits[userRole]) return 429;│       │
+│  └────────────────────────────────────────────────┘       │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+┌────────────────────────▼─────────────────────────────────┐
+│  Layer 5: 数据安全（Supabase PostgreSQL）                  │
+│                                                          │
+│  ┌── 行级安全策略（RLS）──────────────────────────┐        │
+│  │  -- 每个用户只能读写自己的数据，数据库层面强制    │        │
+│  │  CREATE POLICY "own_data" ON conversations     │        │
+│  │    FOR ALL USING (auth.uid() = user_id);       │        │
+│  │  -- 即使代码有 bug，A 用户永远拿不到 B 的数据    │        │
+│  └────────────────────────────────────────────────┘       │
+│                                                          │
+│  ┌── 全链路审计日志 ───────────────────────────────┐       │
+│  │  -- 所有"改数据"操作都写审计日志                  │       │
+│  │  INSERT INTO audit_log (                        │       │
+│  │    user_id, action, resource_type,              │       │
+│  │    old_value, new_value, ip_address             │       │
+│  │  ) VALUES (...);                                │       │
+│  └────────────────────────────────────────────────┘       │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ### 攻击场景 vs 防御机制
 
-| 攻击方式 | 防御手段 | 响应 |
-|---------|---------|------|
-| 暴力破解登录 | IP 速率限制 60次/分钟 | 返回 429，Retry-After 60s |
-| 伪造 JWT Token | HMAC-SHA256 签名验证 | 返回 401 Unauthorized |
-| XSS 注入 | Zod + sanitizeHtml | 输入被清洗或拒绝 |
-| SQL 注入 | Supabase Prepared Statements + RLS | 攻击无效，数据隔离 |
-| 伪造付款成功 | Stripe Webhook 签名验证 | 400 拒绝，账户不升级 |
-| 越权访问他人数据 | Supabase RLS 行级策略 | 数据库层面 0 数据返回 |
-| 重放 Stripe 事件 | KV 幂等键（event_id 去重） | 重复事件静默忽略 |
-| 访问管理后台 | 角色检查（admin only） | 重定向到 /dashboard |
-| DDoS 洪泛 | EdgeOne CDN 自动清洗 + KV 限流 | 边缘节点拦截，不到源站 |
+| 攻击方式 | 防御层 | 防御手段 | 攻击者看到 |
+|---------|--------|---------|-----------|
+| DDoS / 流量洪泛 | Layer 0 | EdgeOne CDN 流量清洗 | 请求被丢弃 |
+| 暴力破解登录 | Layer 1 | IP 限速 60次/分钟 | `429 Too Many Requests` |
+| 伪造 JWT Token | Layer 2 | HMAC-SHA256 签名验证 | `401 Unauthorized` |
+| XSS 注入脚本 | Layer 3 | sanitizeHtml 清洗输入 | 脚本被转义，无法执行 |
+| SQL 注入 | Layer 5 | Supabase Prepared Statements | 查询无效 |
+| 越权读他人数据 | Layer 5 | RLS 行级策略 | 返回空结果 |
+| 伪造 Stripe 付款 | Layer 4 | Webhook 签名验证 | `400 Bad Request` |
+| 重复触发付款 | Layer 4 | KV 幂等键去重 | 静默忽略 |
+| CSRF 跨站请求 | Layer 2 | Double-submit cookie | 请求被拒绝 |
+| 访问 /admin | Layer 2 | 角色检查（admin only） | 重定向到 /dashboard |
 
 ---
 
-## 📊 管理后台预览
+## ⚡ EdgeOne 全栈能力使用详解
 
-管理员登录后，`/admin` 展示以下实时数据（自动生成，用 Recharts 绘制）：
+这个 Skill 充分利用了 EdgeOne 的全部四种能力：
 
-### 仪表盘 KPI 卡片
-```
-┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
-│ 总用户数     │ │ 今日活跃     │ │ 本月收入     │ │ AI 调用次数  │
-│ 1,234       │ │ 89          │ │ $3,456      │ │ 45,678      │
-│ ↑ 12%      │ │ ↑ 5%       │ │ ↑ 23%      │ │ ↑ 67%      │
-└─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
+### 1. Edge Functions（V8 引擎，冷启动 < 5ms）
+
+```typescript
+// edge-functions/api/health.ts
+// 运行在全球边缘节点，不经过服务器
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    // 注入安全响应头（每个请求都会经过这里）
+    const headers = new Headers({
+      "X-Frame-Options": "DENY",
+      "X-Content-Type-Options": "nosniff",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    });
+
+    // IP 速率限制（使用 KV 存储计数器）
+    const ip = request.headers.get("cf-connecting-ip") || "unknown";
+    const key = `rate:${ip}:${Math.floor(Date.now() / 60000)}`;
+    const count = parseInt(await env.KV.get(key) || "0") + 1;
+    await env.KV.put(key, String(count), { expirationTtl: 120 });
+
+    if (count > 60) {
+      return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
+        status: 429,
+        headers: { ...Object.fromEntries(headers), "Retry-After": "60" },
+      });
+    }
+
+    return new Response(JSON.stringify({ status: "ok", timestamp: Date.now() }), {
+      headers: { "Content-Type": "application/json", ...Object.fromEntries(headers) },
+    });
+  },
+};
 ```
 
-### 用户增长曲线（30天）
-```
-新用户
-100 |          ╭──────╮
- 80 |      ╭───╯       ╰─────╮
- 60 | ╭────╯                  ╰───
- 40 |─╯
- 20 |
-    └────────────────────────────→ 日期
+### 2. Cloud Functions（Node.js 运行时）
+
+```typescript
+// cloud-functions/api/ai/chat.ts
+// 运行在 EdgeOne 的 Node.js 环境
+export async function handler(req: Request): Promise<Response> {
+  // Layer 3: Zod 输入验证
+  const { message, conversationId } = chatSchema.parse(await req.json());
+
+  // Layer 4: 配额检查（从 Supabase 查询今日用量）
+  const usage = await getTodayUsage(userId);
+  const limit = userRole === "pro" ? 500 : 10;
+  if (usage >= limit) {
+    return Response.json({ error: "Daily quota exceeded" }, { status: 429 });
+  }
+
+  // 调用 MiniMax M2.7（通过 EdgeOne AI Gateway，带流式输出）
+  const aiResponse = await fetch(
+    `https://api.minimax.chat/v1/text/chatcompletion_v2`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env.MINIMAX_API_KEY}` },
+      body: JSON.stringify({
+        model: "MiniMax-M2.7",
+        stream: true,   // 流式：AI 边生成边返回
+        messages: conversationHistory,
+      }),
+    }
+  );
+
+  // 把 AI 流式输出直接转发给浏览器（SSE 格式）
+  return new Response(aiResponse.body, {
+    headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+  });
+}
 ```
 
-### 用户管理表格
+### 3. KV Storage（键值存储，毫秒级读写）
+
+KV 在本项目中承担 5 种职责：
+
+```typescript
+// 用途1: 速率限制计数器
+await kv.put(`rate:${ip}:${minute}`, count, { expirationTtl: 120 });
+
+// 用途2: 会话缓存（减少数据库查询）
+await kv.put(`session:${userId}`, JSON.stringify(userProfile), { expirationTtl: 3600 });
+
+// 用途3: Stripe 幂等键（防止重复处理付款事件）
+await kv.put(`stripe:event:${eventId}`, "processed", { expirationTtl: 86400 });
+
+// 用途4: 功能开关（Feature Flags，无需重新部署）
+const featureEnabled = await kv.get(`feature:newDashboard:${userId}`);
+
+// 用途5: AI 配额计数（每天重置）
+await kv.put(`quota:${userId}:${today}`, dailyCount, { expirationTtl: 86400 });
 ```
-姓名         邮箱              角色        状态    操作
-张三         zhang@example.com  Pro         正常    [封禁] [改权限]
-李四         li@example.com     Free        正常    [封禁] [升级]
-王五         wang@example.com   Admin       正常    [查看]
+
+### 4. AI Gateway（统一管理 AI 模型 API）
+
+EdgeOne AI Gateway 的优势：
+
+| 功能 | 说明 |
+|------|------|
+| **统一 API Key 管理** | 不用把 MiniMax Key 暴露在代码里 |
+| **请求日志** | 在 EdgeOne 控制台查看每次 AI 调用 |
+| **自动限流** | 保护你的 AI Key 不被刷爆 |
+| **模型切换** | 一键在 MiniMax / OpenAI / 其他模型间切换，无需改代码 |
+| **成本控制** | 设置每日 token 上限，防止意外超支 |
+
+---
+
+## 🤖 AI 对话功能（MiniMax M2.7）
+
+### 流式输出体验
+
+AI 的回复是**实时流式**的，每个 token 生成后立即推送到浏览器，不是等全部完成再显示：
+
+```
+用户问：帮我优化这段代码的性能
+        if (arr.length > 0) {
+          for (var i = 0; i < arr.length; i++) { ... }
+        }
+
+AI 回复（逐字打出）：
+这段代码有几个可以优化的地方：▌
+
+1. **使用 `const`/`let` 替代 `var`**▌
+   `var` 存在变量提升问题，现代 JS 应始终使用...▌
+
+2. **合并条件判断**▌
+   `arr.length > 0` 的检查是多余的，因为...▌
+
+3. **使用 `for...of` 或 `forEach`**▌
+   语义更清晰，性能相当：▌
+
+   ```javascript
+   for (const item of arr) {▌
+     // 处理 item▌
+   }▌
+   ```▌
+```
+
+### 对话历史管理
+
+每次对话自动保存到 Supabase，用户可以：
+- 随时回看历史对话
+- 给对话起名（AI 自动生成标题）
+- 删除不需要的对话
+- （Pro 用户）导出对话为 Markdown
+
+### 配额系统
+
+```
+免费用户: 每天 10 次对话
+  ↓ 超出后提示升级
+Pro 用户: 每天 500 次对话
+  ↓ 接近上限时提前提醒
+Enterprise 用户: 无限制
+```
+
+配额在数据库和 KV 双重记录，防止并发场景下的超额问题。
+
+---
+
+## 💳 Stripe 支付集成
+
+### 完整支付流程（自动生成）
+
+```
+用户点击"升级到 Pro $19/月"
+  │
+  ▼ POST /api/stripe/create-checkout
+Cloud Function 创建 Checkout Session
+  {
+    price: "price_xxx",           // Pro 方案的 Stripe Price ID
+    customer_email: user.email,   // 预填邮箱
+    client_reference_id: user.id, // 用于 Webhook 关联用户
+    success_url: "/dashboard?upgraded=true",
+    cancel_url: "/pricing",
+  }
+  │
+  ▼ 跳转到 Stripe 官方支付页（无需你处理 PCI 合规）
+用户输入信用卡信息（测试卡：4242 4242 4242 4242）
+  │
+  ▼ Stripe 发送 Webhook 到 POST /api/stripe/webhook
+Cloud Function 处理（含以下验证）：
+  1. 验证 Stripe-Signature 头（防伪造）
+  2. 检查 KV 幂等键（防重复处理）
+  3. 更新数据库：profiles.role = "pro_user"
+  4. 写审计日志：user_id, "subscription_created", ...
+  │
+  ▼ 用户刷新页面 → 发现 AI 配额从 10次/天 变成 500次/天
+```
+
+### 测试支付
+
+在 Stripe 测试模式下，可以用以下测试卡（不收真钱）：
+
+| 场景 | 卡号 |
+|------|------|
+| 支付成功 | `4242 4242 4242 4242` |
+| 需要 3D 验证 | `4000 0025 0000 3155` |
+| 余额不足 | `4000 0000 0000 9995` |
+| 卡被拒绝 | `4000 0000 0000 0002` |
+
+有效期：任意未来日期，CVV：任意3位数
+
+---
+
+## 📊 管理后台详解
+
+只有角色为 `admin` 的账户才能访问 `/admin`，在注册时系统会根据 `ADMIN_EMAILS` 环境变量自动赋予管理员权限。
+
+### 总览仪表盘（`/admin`）
+
+4 个 KPI 卡片 + 2 个图表：
+
+```
+KPI 卡片（实时数据，来自 Cloud Function /api/admin/stats）：
+┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐
+│ 总用户数    │ │ 今日活跃    │ │ 本月收入    │ │ AI 调用次数 │
+│ 1,234      │ │ 89         │ │ $3,456     │ │ 45,678     │
+│ 较昨日↑12%│ │ 较昨日↑5% │ │ 较上月↑23%│ │ 较昨日↑67%│
+└────────────┘ └────────────┘ └────────────┘ └────────────┘
+
+图表（Recharts 绘制）：
+左侧：用户增长曲线（过去30天，折线图）
+右侧：最近注册用户列表（含角色和注册时间）
+```
+
+### 用户管理（`/admin/users`）
+
+```
+搜索框: [搜索邮箱或姓名...]                    [导出CSV]
+
+┌───┬──────────────────┬──────────────────┬────────┬──────┬────────┐
+│ # │ 姓名             │ 邮箱             │ 角色   │ 状态 │ 操作   │
+├───┼──────────────────┼──────────────────┼────────┼──────┼────────┤
+│ 1 │ 张三             │ zhang@xx.com     │ Pro    │ 正常 │[改权限]│
+│   │                  │                  │        │      │[封禁]  │
+├───┼──────────────────┼──────────────────┼────────┼──────┼────────┤
+│ 2 │ 李四             │ li@xx.com        │ Free   │ 正常 │[升级]  │
+│   │                  │                  │        │      │[封禁]  │
+└───┴──────────────────┴──────────────────┴────────┴──────┴────────┘
+
+分页: < 1 2 3 ... 24 >  每页 10 条
+```
+
+### 数据分析（`/admin/analytics`）
+
+```
+时间范围: [7天▼]  [1月]  [3月]  [自定义...]
+
+AI 使用量趋势（Area Chart，霓虹蓝填充）：
+  3000 |           ╭────────╮
+  2000 |     ╭─────╯        ╰────╮
+  1000 | ────╯                    ╰──────
+       └─────────────────────────────────→
+
+订阅分布（Pie Chart）：
+  Free: 67%  █████████████
+  Pro:  28%  ████████
+  Ent:   5%  █
+
+收入趋势（Bar Chart，月度）：
+  5000 |    ████
+  4000 |    ████  ████
+  3000 | ████████████  ████
+       └─────────────────────→
+         Jan  Feb  Mar  Apr
+```
+
+---
+
+## 🛠️ 技术栈与选型理由
+
+| 技术 | 版本 | 为什么选这个 | 不选的替代品 |
+|------|------|------------|------------|
+| **Next.js** | 14 (App Router) | SSR + 边缘渲染 + SEO 友好；App Router 的 Server Components 减少客户端 JS | Nuxt.js（Vue 生态），Remix（无 SSG）|
+| **TypeScript** | 5.5 strict | 全局强类型，编译时发现 99% 的 bug；Zod 类型推断依赖 TS | JavaScript（运行时才报错）|
+| **Tailwind CSS** | v4 | 开发速度快 3 倍；零 CSS 死代码（Purge）；与 shadcn/ui 完美配合 | Styled-components（运行时），CSS Modules（手动维护）|
+| **shadcn/ui** | latest | 代码复制不是 npm 包，可完全自定义；无运行时依赖 | Material UI（过重），Ant Design（设计语言固定）|
+| **Motion** | 11 | 声明式动画，Spring 物理引擎，60fps；性能比 GSAP 好在 React 环境里 | GSAP（命令式，React 不友好），CSS Animation（功能有限）|
+| **Supabase** | latest | PostgreSQL + Auth + RLS + 实时订阅一体化；开源可自托管 | Firebase（闭源，数据锁定），PlanetScale（无 RLS）|
+| **Stripe** | 2026-04-22 | 合规度最高（PCI DSS Level 1）；Webhook 有内建重试；支持 150+ 货币 | PayPal（体验差），国内支付（需企业资质）|
+| **MiniMax M2.7** | latest | 中文理解能力强；支持流式 SSE；国内访问稳定；支持多模态 | ChatGPT（国内不可直连），Claude（无国内镜像）|
+| **Recharts** | 2 | React 生态最成熟；SVG 渲染，无 Canvas 黑盒 | ECharts（jQuery 依赖），Chart.js（需 Canvas 封装）|
+| **Zod** | 3 | TypeScript-first 校验；与 Next.js Server Actions 无缝集成 | Yup（类型推断弱），Joi（非 TS 优先）|
+
+---
+
+## 📁 Skill 内部结构：12 份参考文档
+
+```
+enterprise-ai-saas-skill/
+│
+├── SKILL.md（279行）                ← AI 读取的主控文件
+│   包含：
+│   • 触发词列表（中英文，约20个场景）
+│   • 8步执行流程（带分支逻辑）
+│   • 12个 references 的路由表（按需加载，节省上下文）
+│   • 10条不可违反的关键规则
+│
+└── references/（按需加载，节省 AI 上下文）
+    │
+    ├── user-prompt-intake.md（353行）
+    │   ├─ § Prompt 解析：从用户自由描述提取 Spec 字段
+    │   ├─ § 内置问卷：8个引导问题（产品名/功能/定价/安全级别...）
+    │   └─ § 默认 Spec：AI 助手平台，深蓝主题，中英双语，企业级安全
+    │
+    ├── architecture-overview.md（293行）
+    │   ├─ § 三层架构：Edge（V8）+ Cloud（Node.js）+ Storage（Supabase+KV）
+    │   ├─ § 完整目录结构（`src/`树形图）
+    │   └─ § 请求流转图（浏览器→CDN→Edge→Cloud→DB）
+    │
+    ├── project-scaffold.md（454行）
+    │   ├─ § 精确依赖列表（含版本号，防止冲突）
+    │   ├─ § 脚手架命令序列（create-next-app → shadcn init → 安装依赖）
+    │   ├─ § 所有配置文件模板（tsconfig/tailwind/next.config/edgeone.json）
+    │   └─ § .gitignore（含敏感文件排除）
+    │
+    ├── auth-system.md（671行）
+    │   ├─ § Supabase Auth 配置（OAuth providers 设置）
+    │   ├─ § JWT 生成与验证（服务端和 Edge Function 两种场景）
+    │   ├─ § RBAC 实现（free_user/pro_user/admin 三级角色）
+    │   ├─ § 登录/注册页面完整代码
+    │   ├─ § OAuth 回调处理（/auth/callback）
+    │   └─ § useUser Hook（含角色信息，全局可用）
+    │
+    ├── payment-stripe.md（485行）
+    │   ├─ § 订阅模型设计（Free/Pro/Enterprise 三档）
+    │   ├─ § create-checkout Cloud Function（完整代码）
+    │   ├─ § Webhook 处理（签名验证 + 幂等 + 状态机）
+    │   ├─ § 定价页前端组件
+    │   └─ § 测试流程（使用 Stripe CLI 本地测试 Webhook）
+    │
+    ├── ai-integration.md（401行）
+    │   ├─ § EdgeOne AI Gateway 配置（MiniMax M2.7 接入）
+    │   ├─ § 流式对话 Cloud Function（SSE 实现）
+    │   ├─ § 配额管理系统（按角色限制 + KV 计数）
+    │   ├─ § 对话 UI 组件（打字机效果 + Markdown 渲染）
+    │   └─ § 对话历史持久化（Supabase conversations 表）
+    │
+    ├── security-hardening.md（808行）←  最重要的文档
+    │   ├─ § Layer 1-5 完整实现代码
+    │   ├─ § 攻击场景与防御对应表
+    │   ├─ § OWASP Top 10 覆盖情况
+    │   └─ § 企业级安全 vs 基础安全的功能差异
+    │
+    ├── edge-kv-patterns.md（439行）
+    │   ├─ § Edge Function 基础模板（带 TypeScript 类型）
+    │   ├─ § KV Storage 5种 SaaS 使用模式（代码 + 说明）
+    │   ├─ § 中间件链式处理（Rate Limit → Auth → Business）
+    │   └─ § 常见踩坑（KV 读写延迟、冷启动问题等）
+    │
+    ├── admin-dashboard.md（640行）
+    │   ├─ § 管理员权限系统（route guard + 组件级保护）
+    │   ├─ § 仪表盘 KPI 组件（Recharts + 实时数据）
+    │   ├─ § 用户列表（搜索/排序/分页/批量操作）
+    │   ├─ § 数据分析图表（折线/柱状/饼图）
+    │   └─ § 系统配置界面（AI 参数/限流阈值/功能开关）
+    │
+    ├── ui-design-system.md（647行）
+    │   ├─ § 配色系统（CSS HSL 变量，光/暗双主题）
+    │   ├─ § Glass-morphism 样式类（带完整 CSS 实现）
+    │   ├─ § 动效规格（Motion 配置参数表）
+    │   ├─ § 核心组件实现（Button/Card/Input/Badge/Toast）
+    │   └─ § 移动端适配规范（4断点 + 触摸优化）
+    │
+    ├── database-schema.md（406行）
+    │   ├─ § 6张表的完整 CREATE TABLE SQL
+    │   ├─ § 所有 RLS 策略（带注释说明保护什么）
+    │   ├─ § 触发器（注册时自动创建 profile + 更新用量）
+    │   └─ § 索引设计（查询性能优化）
+    │
+    └── deployment-handoff.md（271行）
+        ├─ § 完整环境变量列表（按功能分组）
+        ├─ § 10步本地验证清单
+        ├─ § 常见部署错误及解决方法
+        └─ § 交接到 edgeone-pages-deploy skill 的触发方式
+```
+
+**文档总量：5,868行**，这些是 AI 的"施工图纸"，AI 按需加载，不浪费上下文。
+
+---
+
+## 🚀 快速开始：在 WorkBuddy 中使用
+
+### 准备（约 2 分钟，只需一次）
+
+```bash
+# 安装官方 EdgeOne Pages Skills 包
+npx skills add TencentEdgeOne/edgeone-pages-skills
+```
+
+### 触发 Skill
+
+打开 WorkBuddy，输入任意一句（以下任选）：
+
+**中文触发语句：**
+```
+帮我搭一个 AI SaaS 平台
+做一个带登录付款的 AI 助手网站
+我想创建一个 AI 写作工具，按月收费
+帮我做一个企业级 AI 客服平台
+搭建一个 AI 工具站，有用户系统和管理后台
+```
+
+**英文触发语句：**
+```
+build an enterprise AI SaaS on EdgeOne Pages
+create an AI assistant platform with subscription billing
+scaffold a full-stack AI SaaS with admin dashboard
+build a production-ready AI chatbot platform
+```
+
+### Skill 的 8 步执行流程
+
+**Step 1** — 门控问题（必须先回答）
+```
+Skill 问：你有没有准备好的产品描述/Prompt？
+  选 A: 有 → 粘贴你的描述，AI 解析成 Spec
+  选 B: 没有 → AI 问你 8 个引导问题
+  选 C: 直接默认 → 用默认的 AI 助手平台规格
+```
+
+**Step 2** — Spec 确认
+```json
+// AI 展示提取的规格让你确认
+{
+  "productName": "你的产品名",
+  "features": { "auth": true, "payment": true, "aiChat": true },
+  "pricing": { "pro": 19, "enterprise": 49 },
+  "security": { "level": "enterprise" }
+}
+// 你回复 "确认" 或 "修改 xxx" 后继续
+```
+
+**Step 3-8** — 自动执行，不需要你操作，约 20-25 分钟完成
+
+### 生成完成后部署
+
+```
+直接对 WorkBuddy 说："部署到 EdgeOne Pages"
+```
+
+---
+
+## 💻 直接运行示例项目
+
+这个仓库的 `ai-saas-template/` 是这个 Skill 的默认输出，产品名 **AiFlow**，可以直接运行体验。
+
+### 环境要求
+
+- Node.js 18+（`node --version` 查看，小于 18 需升级）
+- npm 8+
+
+### 运行步骤
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/bcefghj/enterprise-ai-saas-skill.git
+cd enterprise-ai-saas-skill/ai-saas-template
+
+# 2. 安装依赖（约 30 秒）
+npm install
+
+# 3. 复制环境变量模板
+cp .env.example .env.local
+
+# 4. 至少填入以下内容（其他可以暂时留空）
+# 打开 .env.local，修改：
+# NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhb...
+# MINIMAX_API_KEY=sk-...
+
+# 5. 启动开发服务器
+npm run dev
+# 浏览器打开 http://localhost:3000
+
+# 6. 构建生产版本（验证没有 TypeScript 错误）
+npm run build
+# 应看到：✓ Compiled successfully
+```
+
+### 初始化数据库
+
+在 Supabase SQL Editor 运行 `database/init.sql`（复制粘贴内容即可）：
+
+```sql
+-- 这个脚本会创建：
+-- profiles 表（用户资料）
+-- conversations 表（AI 对话历史）
+-- messages 表（对话消息）
+-- usage_logs 表（用量记录，供管理后台统计）
+-- audit_log 表（安全审计）
+-- system_settings 表（可在管理后台修改的配置）
+-- 以及所有 RLS 策略、触发器、索引
+```
+
+---
+
+## ⚙️ 环境变量获取指南（新手友好）
+
+### 1. Supabase — 完全免费，5 分钟搞定
+
+```
+访问 supabase.com → "Start your project" → GitHub 登录
+→ New Project → 填项目名 → 设数据库密码（记住！）
+→ 等约 2 分钟初始化完成
+→ 左侧 Settings → API → 复制以下内容到 .env.local：
+```
+
+| `.env.local` 变量 | 在哪里找 | 备注 |
+|-------------------|---------|------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Settings → API → Project URL | 公开的，放前端安全 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Settings → API → anon/public | 公开的，客户端用 |
+| `SUPABASE_SERVICE_ROLE_KEY` | Settings → API → service_role | **保密！只在服务端用** |
+| `SUPABASE_JWT_SECRET` | Settings → JWT Settings → JWT Secret | 用于验证 Token 签名 |
+
+### 2. Stripe — 测试模式完全免费，无需银行卡
+
+```
+访问 stripe.com → 注册 → 左上角切到 "Test mode"（测试模式）
+→ Developers → API keys → 复制 Secret key 和 Publishable key
+
+创建产品：
+→ Product catalog → + Add product → 填名称（如 Pro Plan）
+→ Add price → Recurring → 填 $19 → Save
+→ 复制 Price ID（price_xxx）
+```
+
+| `.env.local` 变量 | 在哪里找 |
+|-------------------|---------|
+| `STRIPE_SECRET_KEY` | Developers → API keys → Secret key（sk_test_...）|
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Developers → API keys → Publishable key（pk_test_...）|
+| `STRIPE_WEBHOOK_SECRET` | Webhooks → + Add endpoint → 复制 Signing secret |
+| `STRIPE_PRICE_PRO` | Product → 点击产品 → 复制 Price ID（price_...）|
+
+### 3. MiniMax AI Key
+
+```
+访问 api.minimax.chat → 注册 → API Keys → 创建新 Key → 复制
+```
+
+| `.env.local` 变量 | 说明 |
+|-------------------|------|
+| `MINIMAX_API_KEY` | 直连 MiniMax API 的密钥 |
+| `EDGEONE_AI_GATEWAY_KEY` | 通过 EdgeOne AI Gateway 代理时用（可选）|
+
+### 完整 `.env.local` 示例
+
+```env
+# ========== Supabase（数据库 + 认证）==========
+NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijkl.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...  # 绝对保密！
+SUPABASE_JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters
+
+# ========== Stripe（订阅支付）==========
+STRIPE_SECRET_KEY=sk_test_51...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51...
+STRIPE_PRICE_PRO=price_1ABC...         # Pro 方案 $19/月
+STRIPE_PRICE_ENTERPRISE=price_1DEF...  # Enterprise 方案 $49/月
+
+# ========== MiniMax AI ==========
+MINIMAX_API_KEY=sk-cp-...              # 或你的 EdgeOne AI Gateway Key
+EDGEONE_AI_GATEWAY_KEY=               # 可选，使用 EdgeOne AI Gateway 时填
+EDGEONE_GATEWAY_NAME=                 # 可选
+
+# ========== 应用配置 ==========
+NEXT_PUBLIC_APP_URL=http://localhost:3000   # 部署后改为你的真实域名
+ADMIN_EMAILS=your-email@example.com        # 这个邮箱注册后自动获得管理员权限
+```
+
+---
+
+## 🗃️ 数据库结构详解
+
+运行 `database/init.sql` 后创建以下 6 张表：
+
+### profiles（用户资料）
+
+```sql
+CREATE TABLE profiles (
+  id          UUID PRIMARY KEY REFERENCES auth.users(id),
+  email       TEXT NOT NULL,
+  full_name   TEXT,
+  avatar_url  TEXT,
+  role        TEXT NOT NULL DEFAULT 'free_user',
+                   -- 可选值: free_user | pro_user | admin
+  stripe_customer_id      TEXT,     -- Stripe 客户 ID
+  stripe_subscription_id  TEXT,     -- 当前订阅 ID
+  subscription_status     TEXT,     -- active | canceled | past_due
+  ai_calls_today          INTEGER DEFAULT 0,
+  ai_calls_reset_at       TIMESTAMPTZ,  -- 每天凌晨重置计数
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### conversations（AI 对话会话）
+
+```sql
+CREATE TABLE conversations (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES profiles(id),
+  title       TEXT NOT NULL DEFAULT '新对话',   -- AI 自动生成标题
+  model       TEXT NOT NULL DEFAULT 'MiniMax-M2.7',
+  message_count  INTEGER DEFAULT 0,
+  created_at  TIMESTAMPTZ DEFAULT now(),
+  updated_at  TIMESTAMPTZ DEFAULT now()
+);
+-- RLS: 只能读写自己的对话
+```
+
+### messages（对话消息）
+
+```sql
+CREATE TABLE messages (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID NOT NULL REFERENCES conversations(id),
+  role            TEXT NOT NULL,   -- 'user' | 'assistant' | 'system'
+  content         TEXT NOT NULL,
+  tokens_used     INTEGER,         -- 记录每次对话消耗的 token 数
+  created_at      TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### usage_logs（用量追踪）
+
+管理后台图表数据的来源：
+
+```sql
+CREATE TABLE usage_logs (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID NOT NULL REFERENCES profiles(id),
+  action_type  TEXT NOT NULL,   -- 'ai_chat' | 'login' | 'export' 等
+  tokens_used  INTEGER DEFAULT 0,
+  metadata     JSONB,           -- 额外信息（模型名、请求时长等）
+  created_at   TIMESTAMPTZ DEFAULT now()  -- 按天聚合用于图表
+);
+```
+
+### audit_log（安全审计）
+
+企业级合规要求，记录所有"改数据"操作：
+
+```sql
+CREATE TABLE audit_log (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id        UUID REFERENCES profiles(id),
+  action         TEXT NOT NULL,   -- 'role_changed' | 'subscription_created' | 'user_banned' 等
+  resource_type  TEXT NOT NULL,   -- 操作对象类型
+  resource_id    TEXT,            -- 操作对象 ID
+  old_value      JSONB,           -- 变更前的值（用于回溯）
+  new_value      JSONB,           -- 变更后的值
+  ip_address     TEXT,
+  user_agent     TEXT,
+  created_at     TIMESTAMPTZ DEFAULT now()
+);
+-- 只有 admin 角色能读取
 ```
 
 ---
 
 ## 🎨 设计系统
 
-### 配色方案（深色主题）
+### 配色系统（CSS HSL 变量）
 
-| 用途 | 颜色 | HSL 值 |
-|------|------|--------|
-| 背景 | 深海军蓝黑 | `hsl(222, 47%, 4%)` |
-| 主色调 | 亮蓝 | `hsl(217, 91%, 60%)` |
-| 成功 | 翠绿 | `hsl(142, 71%, 45%)` |
-| 警告 | 琥珀黄 | `hsl(38, 92%, 50%)` |
-| 危险 | 红橙 | `hsl(0, 72%, 51%)` |
-| 边框 | 半透明白 | `rgba(255,255,255,0.08)` |
+使用 CSS 自定义属性，支持运行时主题切换（深色/浅色）：
 
-### Glass-morphism 卡片效果
+```css
+:root {
+  /* 背景 */
+  --background: hsl(222, 47%, 100%);    /* 浅色模式：纯白 */
+  --foreground: hsl(222, 47%, 11%);     /* 深色文字 */
 
-每个功能卡片、对话气泡、仪表盘面板都使用毛玻璃效果：
+  /* 主色调（亮蓝） */
+  --primary:          hsl(221, 83%, 53%);
+  --primary-foreground: hsl(210, 40%, 98%);
+
+  /* 卡片 */
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222, 47%, 11%);
+}
+
+.dark {
+  /* 背景 */
+  --background: hsl(222, 47%, 4%);     /* 深色模式：深海军蓝黑 */
+  --foreground: hsl(210, 40%, 98%);    /* 浅色文字 */
+
+  /* 主色调（更亮的蓝，适应深色背景） */
+  --primary: hsl(217, 91%, 60%);
+}
+```
+
+### Glass-morphism 毛玻璃效果
 
 ```css
 .glass-card {
@@ -441,21 +1060,20 @@ enterprise-ai-saas-skill/
   backdrop-filter: blur(12px) saturate(120%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 8px 32px rgba(0, 0, 0, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),  /* 顶部高光 */
+    0 8px 32px rgba(0, 0, 0, 0.2);             /* 底部阴影 */
 }
 ```
 
 ### 动效规格
 
-| 动效类型 | 实现 | 时长 |
-|---------|------|------|
-| 页面元素入场 | `motion` IntersectionObserver stagger | 50ms 递增 |
-| 按钮悬停 | scale(1.02) + 发光 | 150ms ease |
-| 侧边栏展开 | spring(stiffness: 400) | 物理弹簧 |
-| 数字计数器 | `countUp` 0 → 目标值 | 1200ms ease-out |
-| 消息气泡 | 从底部 fadeIn + slideUp | 200ms |
-| AI 流式文字 | 逐字追加 DOM | 跟随 SSE 事件 |
+| 场景 | 库 | 配置 |
+|------|-----|------|
+| 页面元素入场 | Motion | `initial={{ opacity: 0, y: 20 }}` → `animate={{ opacity: 1, y: 0 }}`，stagger 50ms |
+| 按钮交互 | Motion | `whileHover={{ scale: 1.02 }}`，`whileTap={{ scale: 0.98 }}`，duration 150ms |
+| 侧边栏 | Motion | Spring stiffness 400，damping 30（物理弹簧）|
+| 数字计数器 | 原生 | 1200ms ease-out，从 0 到目标值 |
+| AI 流式文字 | 原生 DOM | 每收到 SSE token，追加到 DOM，触发 CSS 过渡 |
 
 ---
 
@@ -463,231 +1081,113 @@ enterprise-ai-saas-skill/
 
 | 断点 | 设备 | 布局变化 |
 |------|------|---------|
-| `390px` | iPhone | 单列、汉堡菜单、底部固定 Tab Bar |
-| `768px` | iPad | 两列卡片、水平导航 |
-| `1024px` | 笔记本 | 三列卡片、侧边栏显示 |
-| `1440px` | 大屏 | max-width 居中，增加间距 |
+| `< 390px`（手机） | iPhone SE | 单列、汉堡菜单、隐藏 Sidebar、底部固定 Tab Bar |
+| `390-768px`（小屏） | iPhone Pro Max | 两列卡片、水平导航 |
+| `768-1024px`（平板） | iPad | 大部分 Desktop 布局 |
+| `> 1024px`（桌面） | MacBook+ | 全功能：侧边栏常驻、三列卡片、宽仪表盘 |
 
-移动端专项优化：
-- 触摸目标最小 44×44px（Apple HIG 规范）
-- 禁用耗性能的粒子动画（`@media (prefers-reduced-motion)`）
-- 字体自动跟随系统（不锁死大小）
-- iOS 安全区域适配（`env(safe-area-inset-bottom)`）
-
----
-
-## 🚀 快速开始
-
-### 方式一：在 WorkBuddy 中触发（推荐，30 分钟搭好）
-
-1. **安装 Skill**
-
-   在终端运行：
-   ```bash
-   npx skills add TencentEdgeOne/edgeone-pages-skills
-   ```
-
-2. **触发对话**
-
-   打开 WorkBuddy，输入任意一句，例如：
-   ```
-   帮我做一个 AI 写作助手平台，用户订阅 $12/月，我要管理后台
-   ```
-
-   其他有效触发语句（任选一个）：
-   ```
-   build an enterprise AI SaaS on EdgeOne Pages
-   创建一个带登录付款的 AI 聊天工具
-   帮我搭一个 AI 客服机器人 SaaS
-   做一个 AI SaaS，功能参考 ChatGPT Plus
-   我想做一个 AI 辅助编程工具，商业版每月 $20
-   ```
-
-3. **回答问题（约 5 个）**
-
-   Skill 会问你：
-   - 产品名字叫什么？
-   - 主要功能是？（AI 对话/图像生成/文档处理…）
-   - 定价方案？
-   - 需要哪些语言？（中/英/双语）
-   - 安全级别？（基础/企业级）
-
-4. **等待生成**
-
-   大约 15-20 分钟，AI 会完成所有代码生成并运行 `npm run build`。
-
-5. **一键部署**
-
-   生成完成后说：
-   ```
-   部署到 EdgeOne Pages
-   ```
+**移动端专项：**
+- 触摸目标最小 44×44px（符合 Apple HIG 标准）
+- `prefers-reduced-motion`：动效缩减，省电
+- `env(safe-area-inset-bottom)`：适配 iPhone 底部安全区域
+- 文字不锁死大小，跟随系统字号设置
 
 ---
 
-### 方式二：直接运行示例项目（5 分钟看效果）
+## 📊 与官方示例的差异
 
-示例项目在 `ai-saas-template/` 目录，是这个 Skill 的默认输出（产品名：AiFlow，AI 助手平台）。
-
-**第一步：安装依赖**
-
-```bash
-cd ai-saas-template
-npm install  # 需要 Node.js 18+
-```
-
-**第二步：配置环境变量**
-
-```bash
-cp .env.example .env.local
-```
-
-打开 `.env.local`，至少填以下内容（只用 MiniMax 的话，其余可以暂时跳过）：
-
-```env
-# MiniMax AI（已有 key 的话直接填）
-MINIMAX_API_KEY=sk-你的key
-
-# Supabase（免费，5分钟注册获取）
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhb...
-
-# 其他暂时可以不填，不影响页面渲染
-```
-
-**第三步：启动开发服务器**
-
-```bash
-npm run dev
-```
-
-浏览器打开 `http://localhost:3000`，可以看到完整网站。
-
-**第四步：构建验证**
-
-```bash
-npm run build
-# 应该看到：✓ Compiled successfully
-```
+| 维度 | 官方 `ai-saas-skill` | 本 Skill |
+|------|---------------------|----------|
+| 代码生成方式 | clone 外部 `saas-starter` 仓库 | **AI 完全从零生成**，无外部依赖，100% 定制化 |
+| AI 模型 | FAL/Fireworks 图像生成 | **MiniMax M2.7 对话**（中文理解更强）|
+| 安全防护 | 无 | **5层纵深防御**（Layer 1-5 完整实现）|
+| EdgeOne 使用深度 | 仅 Pages 部署 | **Edge Functions + Cloud Functions + KV + AI Gateway + Middleware** |
+| 管理后台 | 无/简单页面 | **完整功能**（KPI + 图表 + 用户管理 + 系统配置）|
+| 配额系统 | 无 | **按角色强制执行**（KV + DB 双重计数）|
+| 审计日志 | 无 | **全链路审计**（满足企业合规要求）|
+| TypeScript 严格度 | 部分 | **全量 strict mode**，编译器零警告 |
+| 参考文档 | 4个 | **12个文档 5,868行**，覆盖所有工程细节 |
+| 移动端适配 | 基础响应式 | **4断点精细适配**，iOS 安全区域，44px 触摸目标 |
+| Stripe 安全 | 基础接入 | **Webhook 签名验证 + 幂等保护 + 订阅状态机** |
+| 数据库设计 | 基础 | **6张表 + RLS + 触发器 + 索引优化** |
 
 ---
 
-## ⚙️ 环境变量获取指南（新手友好）
+## ❓ 常见问题 FAQ
 
-### Supabase（数据库 + 认证）— 完全免费
+**Q: 我不会编程，能用这个 Skill 吗？**
 
-1. 访问 [supabase.com](https://supabase.com)，点击"Start your project"
-2. GitHub 账号登录（最方便）
-3. 点击"New project"，填项目名，设数据库密码（记住它）
-4. 等约 2 分钟初始化完成
-5. 点击左侧 `Settings` → `API`
-6. 复制以下三项到 `.env.local`：
+> 可以！你只需要会说话。打开 WorkBuddy，告诉它你想做什么，Skill 会做所有技术工作。你唯一需要做的是：去 Supabase/Stripe 复制粘贴几个 API Key。
 
-```
-Project URL          → NEXT_PUBLIC_SUPABASE_URL
-anon / public key    → NEXT_PUBLIC_SUPABASE_ANON_KEY
-service_role key     → SUPABASE_SERVICE_ROLE_KEY  ← 保密！
-```
+**Q: 生成的网站是我的吗？可以商用吗？**
 
-7. 点击 `Settings` → `JWT Settings` → 复制 JWT Secret → `SUPABASE_JWT_SECRET`
-8. 点击 `SQL Editor` → 新建查询 → 粘贴 `database/init.sql` 内容 → 运行
+> 完全是你的。MIT 许可证，商业友好。你可以：部署给真实用户、向用户收费、修改任意代码、不署名直接用。
 
-### Stripe（支付）— 测试模式免费
+**Q: 生成的代码质量怎么样？**
 
-1. 访问 [stripe.com](https://stripe.com)，注册（不需要银行卡验证）
-2. 左上角切换到"Test mode"（测试模式，不会真收钱）
-3. 左侧 `Developers` → `API keys`
-4. 复制：
-   - `Secret key (sk_test_...)` → `STRIPE_SECRET_KEY`
-   - `Publishable key (pk_test_...)` → `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
-5. 左侧 `Product catalog` → `+ Add product` → 创建"Pro Plan" $9.9/month
-6. 复制 Price ID（`price_xxx`）→ `STRIPE_PRICE_PRO`
-7. 左侧 `Webhooks` → `+ Add endpoint`
-   - URL：`https://your-domain.com/api/stripe/webhook`
-   - 事件：`customer.subscription.created/updated/deleted`
-   - 复制 Signing secret → `STRIPE_WEBHOOK_SECRET`
+> 全量 TypeScript strict mode，`npm run build` 零错误通过，已通过实际部署验证。代码风格参考了 t3-stack 和 shadcn/ui 的最佳实践。
 
-> 💡 **测试信用卡号**：`4242 4242 4242 4242`，有效期任意未来日期，CVV `123`
+**Q: 支持多少并发用户？**
 
-### MiniMax（AI 模型）
+> 取决于你的 Supabase 和 EdgeOne 套餐。EdgeOne CDN 可以自动扩展应对流量峰值，数据库连接池通过 Supabase 连接池（PgBouncer）管理，单个免费 Supabase 项目可支持约 200 并发连接。
 
-1. 访问 [api.minimax.chat](https://api.minimax.chat)，注册
-2. 点击左侧"API Keys" → 创建新 Key
-3. 复制 → `MINIMAX_API_KEY`
+**Q: 我已经有自己的项目，能用这个 Skill 添加功能吗？**
+
+> 这个 Skill 专为从零开始设计。如果你只想添加 AI 对话功能，可以参考 `references/ai-integration.md`；只需要支付，参考 `references/payment-stripe.md`。
+
+**Q: 部署到 EdgeOne Pages 需要付费吗？**
+
+> 不需要，EdgeOne Pages 有免费额度（每月 100GB 流量、100万次请求），对个人项目和测试完全够用。参赛还有专属免费套餐。
+
+**Q: MiniMax API 调用会产生费用吗？**
+
+> 会按 token 计费，但费用极低。MiniMax 新用户一般有免费额度，日常测试不会有明显费用。
+
+**Q: 我的密钥安全吗？**
+
+> 所有密钥只存在 `.env.local`（被 `.gitignore` 排除，不上传 GitHub）和 EdgeOne 的环境变量系统中。前端代码只能访问 `NEXT_PUBLIC_` 前缀的变量，服务端密钥永不下发到浏览器。
 
 ---
 
-## 🗃️ 数据库结构
+## 🤝 贡献指南
 
-6 张表，全部自动生成，运行 `database/init.sql` 一键初始化：
+欢迎贡献！以下是主要贡献方向：
 
-```sql
-profiles          ← 用户资料（姓名/头像/订阅等级/使用配额）
-  └── user_id (FK → auth.users)
-  └── role: free_user | pro_user | admin
+**1. 添加新的功能模块**
 
-conversations     ← 对话会话
-  └── user_id, title, model, created_at
+比如：多语言支持（i18n）、文件上传、团队协作、API Key 管理等
 
-messages          ← 对话消息
-  └── conversation_id, role: user|assistant, content
+在 `references/` 下创建对应的 `xxx-module.md`，并在 `SKILL.md` 的路由表中添加条目。
 
-usage_logs        ← 用量追踪（管理后台图表数据来源）
-  └── user_id, action_type, tokens_used, date
+**2. 改进现有实现**
 
-audit_log         ← 审计日志（企业级合规）
-  └── user_id, action, resource_type, old_value, new_value
+发现了更好的安全实践？发现了 EdgeOne 的新功能？欢迎 PR。
 
-system_settings   ← 系统配置（可在管理后台修改）
-  └── ai_model, rate_limit_rpm, daily_quota_free, daily_quota_pro
-```
+**3. 报告 Bug**
 
----
+在 GitHub Issues 中描述：触发语句 → 期望行为 → 实际行为。
 
-## 📖 与官方示例的对比
+**4. 测试新场景**
 
-这个 Skill 相比官方仓库的 `ai-saas-skill`，有以下主要改进：
-
-| 维度 | 官方 ai-saas-skill | 本 Skill |
-|------|-------------------|----------|
-| 代码来源 | clone 外部模板仓库 | AI **从零生成**，完全按用户需求定制 |
-| AI 模型 | FAL/Fireworks 图像生成 | **MiniMax M2.7 对话**（中文更强）|
-| 安全设计 | 无安全防护 | **5层安全**（IP限流/JWT/Zod/Stripe签名/RLS）|
-| EdgeOne 使用 | 仅基础部署 | **Edge Functions + KV + AI Gateway + Middleware** 全栈 |
-| 管理后台 | 无 | **完整功能**（用户管理 + 图表 + 系统配置）|
-| 配额系统 | 无 | **按订阅等级限制**（free: 10次/天, pro: 500次/天）|
-| 审计日志 | 无 | **所有变更操作入库**（企业合规）|
-| TypeScript | 部分 | **全量 strict mode**，零 `any` |
-| 参考文档 | 4 个文档 | **12 个文档 5868 行**，覆盖所有工程细节 |
-| 移动适配 | 基础响应式 | **4断点精细适配**，iOS 安全区域，触摸优化 |
-
----
-
-## 🤝 如何在其他平台使用
-
-这个 Skill 遵循标准 `SKILL.md` 格式，理论上可以在任何支持该格式的 AI 编程工具中使用：
-
-- **WorkBuddy（CodeBuddy）** — 原生支持，推荐 ✅
-- **Cursor** — 将 SKILL.md 内容放入 `.cursor/rules/` 后可参考
-- **Claude（claude.ai）** — 将 SKILL.md 内容作为 system prompt 粘贴使用
-- **其他 AI 助手** — 同上，将内容粘贴为上下文
+用不同的产品描述触发 Skill，测试生成的代码是否符合预期，报告失败的场景。
 
 ---
 
 ## 📄 许可证
 
-MIT License — 随意使用，商业友好。Fork、改造、二次发布均可，保留原作者信息即可。
+MIT License — 随意使用，商业友好。Fork、改造、二次发布均可。
 
 ---
 
 ## 🙏 致谢
 
-- [WorkBuddy / CodeBuddy](https://www.codebuddy.cn) — AI 编程平台
-- [Tencent EdgeOne](https://edgeone.ai) — 全球边缘部署，这个 Skill 的最终运行环境
-- [Supabase](https://supabase.com) — 开源的 Firebase 替代品
+- [WorkBuddy / CodeBuddy](https://www.codebuddy.cn) — AI 编程平台，让这个 Skill 成为可能
+- [Tencent EdgeOne](https://edgeone.ai) — 全球边缘部署 + Edge Functions + KV + AI Gateway
+- [Supabase](https://supabase.com) — 开源的 Firebase 替代品，PostgreSQL + Auth 一体化
 - [Stripe](https://stripe.com) — 最值得信赖的支付基础设施
-- [MiniMax](https://api.minimax.chat) — 中文能力极强的 AI 模型
-- Claude Code — 安全分层架构的设计灵感来源
+- [MiniMax](https://api.minimax.chat) — 中文能力极强的多模态大语言模型
+- [Claude Code](https://claude.ai) — 5层安全架构的设计灵感来源
+- [shadcn/ui](https://ui.shadcn.com) — 优雅的 React 组件库
 
 ---
 
@@ -695,6 +1195,8 @@ MIT License — 随意使用，商业友好。Fork、改造、二次发布均可
 
 **Made with ❤️ for WorkBuddy × EdgeOne Pages AI Prompts + Skills 挑战赛**
 
-⭐ 如果这个 Skill 对你有帮助，欢迎点个 Star — 这对我们非常重要！
+⭐ 如果这个 Skill 对你有帮助，欢迎点个 Star！
+
+[🌐 在线演示](https://enterprise-ai-saas-3wsjjdqb.edgeone.cool) · [🐛 报告问题](https://github.com/bcefghj/enterprise-ai-saas-skill/issues) · [📖 比赛详情](https://pages.edgeone.ai/workbuddy)
 
 </div>
