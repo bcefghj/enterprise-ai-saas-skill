@@ -1,0 +1,5 @@
+1:"$Sreact.fragment"
+2:I[97367,["/_next/static/chunks/0xl58-l5om5rj.js","/_next/static/chunks/08m3idpvu1u8d.js","/_next/static/chunks/0750malqf5hm6.js","/_next/static/chunks/03vo0er8vw_md.js","/_next/static/chunks/0n4z.7yu76je-.js"],"OutletBoundary"]
+3:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","div",null,{"className":"flex min-h-screen items-center justify-center","children":["$","p",null,{"className":"text-muted-foreground","children":"正在处理登录..."}]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"3inuiPeQE5CdW4IUjtdiP"}
+4:null
