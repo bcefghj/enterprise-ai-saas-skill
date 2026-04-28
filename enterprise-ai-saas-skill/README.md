@@ -27,7 +27,7 @@
 | 📊 用户仪表盘 | 个人中心 | 使用统计图表 + 历史对话列表 |
 | 🔐 管理后台 | 后台管理 | 用户管理 + 数据分析 + 系统配置（仅管理员） |
 
-*部署后将补充在线演示链接*
+**🌐 在线演示：[enterprise-ai-saas-3wsjjdqb.edgeone.cool](https://enterprise-ai-saas-3wsjjdqb.edgeone.cool)**
 
 ---
 
