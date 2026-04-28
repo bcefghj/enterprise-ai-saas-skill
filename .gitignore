@@ -1,0 +1,28 @@
+# Sensitive files (API keys / credentials)
+github.md
+minimax.md
+*.env
+*.env.local
+.env*.local
+
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+out/
+dist/
+
+# EdgeOne
+.edgeone/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Cursor
+.cursor/

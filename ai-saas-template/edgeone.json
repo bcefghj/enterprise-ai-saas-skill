@@ -1,0 +1,7 @@
+{
+  "name": "ai-saas-template",
+  "framework": "next",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "devCommand": "npm run dev"
+}
