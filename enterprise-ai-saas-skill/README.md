@@ -9,7 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue)](https://typescriptlang.org)
 [![Security: 5-Layer](https://img.shields.io/badge/Security-5%20Layer%20Defense-red)](#-安全架构5层纵深防御)
 
-**🌐 在线演示：[enterprise-ai-saas-3wsjjdqb.edgeone.cool](https://enterprise-ai-saas-3wsjjdqb.edgeone.cool)**
+**🌐 在线演示：[bcefghj.github.io](https://bcefghj.github.io)**
 
 ---
 
